@@ -1,0 +1,94 @@
+---
+// RankItem — A politician entry in a ranking list
+import { getInitials } from '@lib/types';
+import type { Politician } from '@lib/types';
+
+export interface Props {
+  rank: number;
+  politician: Politician;
+  metricLabel: string;
+  metricValue: string;
+  isBad?: boolean;
+}
+
+const { rank, politician, metricLabel, metricValue, isBad = false } = Astro.props;
+const initials = getInitials(politician.name);
+const href = `/politico/${politician.chamber}/${politician.id}`;
+---
+
+<a class="rank-item card card--interactive" href={href}>
+  <div class:list={['rank-item__num', 'mono', { 'rank-item__num--top': rank <= 3 }]}>{rank}</div>
+  <div class="rank-item__avatar">
+    <span>{initials}</span>
+  </div>
+  <div class="rank-item__info">
+    <div class="rank-item__name">{politician.name}</div>
+    <div class="rank-item__sub">{politician.party} · {politician.state}</div>
+  </div>
+  <div class:list={['rank-item__score', 'mono', { 'rank-item__score--bad': isBad }]}>
+    {metricValue}
+  </div>
+</a>
+
+<style>
+  .rank-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+
+  .rank-item__num {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    width: 22px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .rank-item__num--top {
+    color: var(--vote-no-light);
+  }
+
+  .rank-item__avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .rank-item__info {
+    flex: 1;
+  }
+
+  .rank-item__name {
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+
+  .rank-item__sub {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+  }
+
+  .rank-item__score {
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .rank-item__score--bad {
+    color: var(--vote-no-light);
+  }
+</style>

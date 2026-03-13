@@ -1,0 +1,193 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { mockCompare, mockProfiles } from '@lib/mock-data';
+import { getVoteBadgeClass, getVoteLabel, formatDate, getInitials } from '@lib/types';
+import type { VotePosition } from '@lib/types';
+
+// For the prototype, pre-load comparison of politicians 1 and 3
+const ids = [1, 3];
+const compareData = mockCompare(ids);
+const { politicians, commonVotes, agreementCount, disagreementCount } = compareData;
+const totalCommon = agreementCount + disagreementCount;
+---
+
+<BaseLayout title="Comparador — Voto Exposto">
+  <div class="compare-page container">
+    <div class="section-eyebrow">Ferramenta</div>
+    <h1 class="compare-title">Comparador de parlamentares</h1>
+    <p class="compare-sub">
+      Escolha até 3 deputados ou senadores para ver como votaram nas mesmas pautas.
+    </p>
+
+    <!-- Politician Slots -->
+    <div class="compare-slots grid-2 grid-3-sm">
+      {politicians.map((p) => (
+        <div class="compare-slot compare-slot--filled card">
+          <div class="compare-slot__icon">👤</div>
+          <div class="compare-slot__name">{p.name}</div>
+          <div class="compare-slot__label mono">{p.party} · {p.state}</div>
+        </div>
+      ))}
+      <a href="/busca" class="compare-slot card card--interactive">
+        <div class="compare-slot__icon">➕</div>
+        <div class="compare-slot__label mono">Adicionar parlamentar</div>
+      </a>
+    </div>
+
+    <!-- Comparison Table -->
+    <h2 class="sub-heading" style="font-size: 0.85rem">Votações em comum</h2>
+    <div class="compare-table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="text-align: left; min-width: 180px">Votação</th>
+            {politicians.map((p) => (
+              <th>
+                {p.name.split(' ')[0]}<br />
+                <span style="color: var(--text-tertiary); font-size: 0.6rem">{p.party} · {p.state}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {commonVotes.map(({ vote, positions }) => (
+            <tr>
+              <td style="text-align: left; color: var(--text-secondary); font-size: 0.78rem">
+                {vote.description.length > 50
+                  ? vote.description.substring(0, 50) + '…'
+                  : vote.description}
+              </td>
+              {politicians.map((p) => {
+                const pos = positions[p.id] as VotePosition;
+                return (
+                  <td>
+                    <span class={`vote-badge ${getVoteBadgeClass(pos)}`} style="font-size: 0.63rem; padding: 3px 7px">
+                      {getVoteLabel(pos)}
+                    </span>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Agreement Stats -->
+    <div class="compare-stats grid-2" style="margin-top: 1.25rem">
+      <div class="card score-card">
+        <div class="score-label">Concordâncias</div>
+        <div class="score-value">{agreementCount}/{totalCommon}</div>
+        <div class="compare-stats__note">
+          Votaram igual em {totalCommon > 0 ? Math.round((agreementCount / totalCommon) * 100) : 0}%
+        </div>
+      </div>
+      <div class="card score-card">
+        <div class="score-label">Divergências</div>
+        <div class="score-value score-value--red">{disagreementCount}/{totalCommon}</div>
+        <div class="compare-stats__note">
+          Votaram diferente em {totalCommon > 0 ? Math.round((disagreementCount / totalCommon) * 100) : 0}%
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .compare-page {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .compare-title {
+    font-weight: 800;
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .compare-sub {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  .compare-slots {
+    margin-bottom: 1.5rem;
+  }
+
+  .compare-slot {
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .compare-slot:not(.compare-slot--filled) {
+    border-style: dashed;
+  }
+
+  .compare-slot__icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .compare-slot__name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+
+  .compare-slot__label {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .sub-heading {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .sub-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-primary);
+  }
+
+  .compare-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    padding: 0.65rem 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-primary);
+    font-size: 0.8rem;
+  }
+
+  .compare-table th {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .compare-table tr:hover td {
+    background: var(--bg-tertiary);
+  }
+
+  .compare-stats__note {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 0.2rem;
+  }
+</style>

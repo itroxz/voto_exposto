@@ -1,0 +1,293 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title = 'Voto Exposto — Transparência Parlamentar',
+  description = 'Descubra como deputados e senadores brasileiros realmente votam. Dados oficiais, sem opinião.',
+  ogImage = '/og-default.png',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+
+    <!-- OG -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar__inner container">
+        <a href="/" class="navbar__logo">
+          <span class="navbar__dot"></span>
+          Voto Exposto
+        </a>
+        <div class="navbar__links">
+          <a href="/rankings" class="navbar__link">Rankings</a>
+          <a href="/comparar" class="navbar__link">Comparar</a>
+          <button class="navbar__theme-toggle" id="theme-toggle" aria-label="Alternar tema">
+            <span class="theme-icon theme-icon--light">☀️</span>
+            <span class="theme-icon theme-icon--dark">🌙</span>
+          </button>
+          <span class="navbar__badge">Beta</span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="pb-nav animate-in">
+      <slot />
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          Dados:
+          <a href="https://dadosabertos.camara.leg.br" target="_blank" rel="noopener">Câmara dos Deputados</a> ·
+          <a href="https://legis.senado.leg.br/dadosabertos" target="_blank" rel="noopener">Senado Federal</a> ·
+          <a href="https://portaltransparencia.gov.br" target="_blank" rel="noopener">Portal da Transparência</a>
+        </p>
+        <p>
+          Código aberto no <a href="https://github.com/voto-exposto/voto-exposto" target="_blank" rel="noopener">GitHub</a> ·
+          Sem publicidade · Sem criar conta · Atualização diária
+        </p>
+        <p class="footer__disclaimer">
+          Dados oficiais públicos. Este site não expressa opinião — apresenta fatos para que o cidadão tire suas próprias conclusões.
+        </p>
+      </div>
+    </footer>
+
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <a href="/" class="bottom-nav__item" data-page="home">
+        <span class="bottom-nav__icon">🏠</span>
+        <span>Início</span>
+      </a>
+      <a href="/busca" class="bottom-nav__item" data-page="busca">
+        <span class="bottom-nav__icon">🔍</span>
+        <span>Busca</span>
+      </a>
+      <a href="/rankings" class="bottom-nav__item" data-page="rankings">
+        <span class="bottom-nav__icon">📊</span>
+        <span>Rankings</span>
+      </a>
+      <a href="/comparar" class="bottom-nav__item" data-page="comparar">
+        <span class="bottom-nav__icon">⚖️</span>
+        <span>Comparar</span>
+      </a>
+    </nav>
+
+    <script is:inline>
+      // Theme management
+      (function() {
+        const saved = localStorage.getItem('voto-exposto-theme');
+        if (saved) {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+        // else: no attribute = follows system (light default)
+
+        document.getElementById('theme-toggle')?.addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const isDark = current === 'dark' ||
+            (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          const next = isDark ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('voto-exposto-theme', next);
+        });
+
+        // Highlight active bottom nav item
+        const path = window.location.pathname;
+        document.querySelectorAll('.bottom-nav__item').forEach((item) => {
+          const href = item.getAttribute('href');
+          if (href === '/' && path === '/') item.classList.add('active');
+          else if (href !== '/' && path.startsWith(href)) item.classList.add('active');
+        });
+      })();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+  @import '../styles/search.css';
+</style>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-primary);
+    height: 54px;
+  }
+
+  .navbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .navbar__logo {
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .navbar__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  .navbar__links {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .navbar__link {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .navbar__link:hover {
+    color: var(--text-primary);
+  }
+
+  .navbar__theme-toggle {
+    background: none;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .theme-icon--dark { display: none; }
+  [data-theme="dark"] .theme-icon--light { display: none; }
+  [data-theme="dark"] .theme-icon--dark { display: inline; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-icon--light { display: none; }
+    :root:not([data-theme="light"]) .theme-icon--dark { display: inline; }
+  }
+
+  .navbar__badge {
+    font-size: 0.62rem;
+    background: var(--vote-no-bg);
+    color: var(--vote-no-light);
+    border: 1px solid var(--vote-no-border);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+  }
+
+  .footer {
+    border-top: 1px solid var(--border-primary);
+    padding: 2rem 1.25rem 6rem;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    line-height: 1.9;
+  }
+
+  .footer a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    color: var(--accent-light);
+  }
+
+  .footer__disclaimer {
+    margin-top: 0.5rem;
+    color: var(--text-tertiary);
+    font-size: 0.65rem;
+  }
+
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-nav);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-primary);
+    padding: 0.5rem 0 max(0.5rem, env(safe-area-inset-bottom));
+    z-index: var(--z-sticky);
+  }
+
+  .bottom-nav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    font-size: 0.58rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+    transition: color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .bottom-nav__item.active {
+    color: var(--accent);
+  }
+
+  .bottom-nav__icon {
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  @media (min-width: 768px) {
+    .bottom-nav {
+      display: none;
+    }
+
+    .pb-nav {
+      padding-bottom: 0;
+    }
+  }
+</style>

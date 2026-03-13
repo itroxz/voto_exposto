@@ -1,0 +1,78 @@
+name: Update Congressional Data
+
+on:
+  schedule:
+    # 2x/dia: 6h e 18h UTC (3h e 15h BRT)
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+    inputs:
+      full_refresh:
+        description: 'Full data refresh (last 365 days instead of 30)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch Câmara data
+        run: |
+          if [ "${{ inputs.full_refresh }}" = "true" ]; then
+            npx tsx scripts/fetch-camara.ts --full
+          else
+            npx tsx scripts/fetch-camara.ts
+          fi
+
+      - name: Fetch Senado data
+        run: npx tsx scripts/fetch-senado.ts
+
+      - name: Process data
+        run: npx tsx scripts/process-data.ts
+
+      # Uncomment when D1 is configured:
+      # - name: Seed D1 database
+      #   env:
+      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      #     CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      #   run: npx tsx scripts/seed-d1.ts
+
+      - name: Commit updated data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: update congressional data [skip ci]'
+          file_pattern: 'data/processed/**'
+
+  notify-failure:
+    needs: update-data
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create failure issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `⚠️ Data update failed — ${new Date().toISOString().split('T')[0]}`;
+            const body = `The automated data update pipeline failed.\n\nRun: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nPlease investigate and fix.`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['bug', 'pipeline'],
+            });

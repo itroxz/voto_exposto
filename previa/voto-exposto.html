@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voto Exposto — Transparência Parlamentar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --border: #222;
+    --border2: #2a2a2a;
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --sim: #16a34a;
+    --sim-light: #22c55e;
+    --nao: #dc2626;
+    --nao-light: #ef4444;
+    --ausente: #525252;
+    --ausente-light: #737373;
+    --abstencao: #ca8a04;
+    --accent: #facc15;
+    --red-bg: rgba(220,38,38,0.12);
+    --green-bg: rgba(22,163,74,0.12);
+    --yellow-bg: rgba(234,179,8,0.12);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.5;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.25rem;
+    display: flex; align-items: center; justify-content: space-between; height: 54px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.15rem;
+    letter-spacing: -0.5px; color: var(--text); cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 1.25rem; align-items: center; }
+  .nav-link {
+    font-size: 0.78rem; color: var(--text2); cursor: pointer;
+    font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-badge {
+    font-size: 0.62rem; background: var(--red-bg); color: var(--nao-light);
+    border: 1px solid var(--nao); padding: 2px 6px; border-radius: 3px;
+    font-family: 'Space Mono', monospace;
+  }
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+  .hero {
+    padding: 3.5rem 1.25rem 2.5rem; max-width: 700px; margin: 0 auto; text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-block; font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--accent); border: 1px solid rgba(250,204,21,0.3);
+    background: rgba(250,204,21,0.07); padding: 4px 10px; border-radius: 3px; margin-bottom: 1.25rem;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(2rem, 7vw, 3.2rem); line-height: 1.05; letter-spacing: -1px; margin-bottom: 1rem;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { color: var(--text2); font-size: 0.95rem; max-width: 480px; margin: 0 auto 2rem; line-height: 1.7; }
+  .search-wrap { position: relative; max-width: 540px; margin: 0 auto; }
+  .search-input {
+    width: 100%; background: var(--bg3); border: 1.5px solid var(--border2);
+    border-radius: 10px; color: var(--text); font-size: 0.97rem;
+    padding: 1rem 1.1rem 1rem 3rem; outline: none;
+    font-family: 'DM Sans', sans-serif; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text3); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 1.1rem; pointer-events: none; }
+  .search-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: var(--accent); color: #000; border: none; border-radius: 6px;
+    padding: 6px 14px; font-size: 0.8rem; font-weight: 700;
+    font-family: 'Syne', sans-serif; cursor: pointer; transition: opacity 0.2s;
+  }
+  .search-btn:hover { opacity: 0.85; }
+  .search-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 0.75rem; }
+  .tag {
+    font-size: 0.72rem; color: var(--text2); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 3px 8px; cursor: pointer;
+    font-family: 'Space Mono', monospace; transition: all 0.15s;
+  }
+  .tag:hover { border-color: var(--accent); color: var(--accent); }
+  .section { padding: 2rem 1.25rem; max-width: 900px; margin: 0 auto; }
+  .section-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+  }
+  .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.3px; }
+  .section-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+  .see-all { font-size: 0.75rem; color: var(--accent); cursor: pointer; font-family: 'Space Mono', monospace; }
+  .rank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media(min-width:600px) { .rank-grid { grid-template-columns: repeat(3, 1fr); } }
+  .rank-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem; cursor: pointer; transition: border-color 0.2s, transform 0.2s;
+  }
+  .rank-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .rank-card-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .rank-card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; margin-bottom: 0.25rem; }
+  .rank-card-sub { font-size: 0.72rem; color: var(--text2); line-height: 1.5; }
+  .vote-row {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem;
+    margin-bottom: 0.5rem; display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 1rem; cursor: pointer; transition: border-color 0.2s;
+  }
+  .vote-row:hover { border-color: var(--border2); }
+  .vote-title { font-size: 0.87rem; font-weight: 500; margin-bottom: 0.2rem; }
+  .vote-meta { font-size: 0.72rem; color: var(--text2); font-family: 'Space Mono', monospace; }
+  .vote-placar { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .placar-num { font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+  .p-sim { color: var(--sim-light); }
+  .p-nao { color: var(--nao-light); }
+  .data-banner {
+    background: rgba(250,204,21,0.06); border: 1px solid rgba(250,204,21,0.2);
+    border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.75rem; color: #a8922c;
+    font-family: 'Space Mono', monospace; display: flex; gap: 8px; align-items: flex-start;
+    max-width: 860px; margin: 0 auto 0.5rem;
+  }
+  .results-wrap { padding: 1.5rem 1.25rem; max-width: 700px; margin: 0 auto; }
+  .result-item {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.9rem 1rem; margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 1rem; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .result-item:hover { border-color: var(--accent); background: var(--bg3); }
+  .result-avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text2);
+  }
+  .result-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+  .result-meta { font-size: 0.75rem; color: var(--text2); }
+  .result-badge {
+    margin-left: auto; flex-shrink: 0; font-size: 0.65rem; font-family: 'Space Mono', monospace;
+    border: 1px solid var(--border2); color: var(--text2); padding: 3px 7px; border-radius: 4px;
+  }
+  .source-note { font-size: 0.65rem; color: var(--text3); font-family: 'Space Mono', monospace; margin-top: 0.4rem; display: flex; gap: 6px; align-items: center; }
+  .source-dot { width: 4px; height: 4px; background: var(--text3); border-radius: 50%; }
+  .profile-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 1.5rem 1.25rem; }
+  .profile-back {
+    display: flex; align-items: center; gap: 6px; color: var(--text2); font-size: 0.78rem;
+    font-family: 'Space Mono', monospace; cursor: pointer; margin-bottom: 1.25rem; transition: color 0.2s;
+  }
+  .profile-back:hover { color: var(--text); }
+  .profile-top { display: flex; align-items: center; gap: 1.25rem; max-width: 700px; margin: 0 auto; }
+  .profile-photo {
+    width: 72px; height: 72px; border-radius: 50%; border: 2.5px solid var(--border2);
+    background: var(--bg3); display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text2); flex-shrink: 0;
+  }
+  .profile-name {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem;
+    letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 0.35rem;
+  }
+  .profile-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    font-size: 0.65rem; font-family: 'Space Mono', monospace; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 3px 8px; border-radius: 4px; border: 1px solid;
+  }
+  .badge-partido { background: var(--yellow-bg); color: var(--accent); border-color: rgba(250,204,21,0.3); }
+  .badge-estado { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
+  .profile-body { padding: 1.25rem; max-width: 700px; margin: 0 auto; }
+  .score-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-bottom: 1.25rem; }
+  .score-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.9rem 0.7rem; text-align: center;
+  }
+  .score-val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; line-height: 1; margin-bottom: 0.2rem; }
+  .score-val.green { color: var(--sim-light); }
+  .score-val.red { color: var(--nao-light); }
+  .score-val.yellow { color: var(--accent); }
+  .score-label { font-size: 0.68rem; color: var(--text2); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+  .presence-wrap {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem;
+    display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1rem;
+  }
+  .ring-svg { flex-shrink: 0; }
+  .presence-text h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+  .presence-text p { font-size: 0.78rem; color: var(--text2); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.65rem; font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+  .chip-ok { background: rgba(22,163,74,0.1); color: var(--sim-light); border: 1px solid rgba(22,163,74,0.25); }
+  .vote-bar-wrap { margin-bottom: 1.5rem; }
+  .bar-title { font-size: 0.72rem; color: var(--text2); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+  .bar-track { height: 10px; border-radius: 99px; overflow: hidden; background: var(--bg3); display: flex; }
+  .bar-seg { height: 100%; }
+  .bar-legend { display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap; }
+  .bar-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text2); }
+  .party-align-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .party-align-title { font-size: 0.72rem; font-family: 'Space Mono', monospace; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+  .align-pct { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--sim-light); margin-bottom: 0.1rem; }
+  .align-note { font-size: 0.75rem; color: var(--text2); }
+  .align-bar-bg { height: 12px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+  .align-bar-fill { height: 100%; border-radius: 99px; }
+  .sub-heading {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem;
+    margin: 1.5rem 0 0.75rem; display: flex; align-items: center; gap: 8px;
+  }
+  .sub-heading::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .vote-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; margin-bottom: 0.5rem; }
+  .vote-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.5rem; }
+  .vote-item-title { font-size: 0.87rem; font-weight: 500; flex: 1; }
+  .voto-badge {
+    flex-shrink: 0; font-size: 0.68rem; font-family: 'Space Mono', monospace; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 5px; border: 1.5px solid;
+  }
+  .voto-sim { background: var(--green-bg); color: var(--sim-light); border-color: var(--sim); }
+  .voto-nao { background: var(--red-bg); color: var(--nao-light); border-color: var(--nao); }
+  .voto-aus { background: rgba(82,82,82,0.15); color: var(--ausente-light); border-color: var(--ausente); }
+  .vote-item-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .vote-date { font-size: 0.68rem; color: var(--text3); font-family: 'Space Mono', monospace; }
+  .vote-placar2 { display: flex; gap: 6px; font-size: 0.68rem; font-family: 'Space Mono', monospace; }
+  .polemic-tag {
+    font-size: 0.6rem; background: var(--red-bg); color: var(--nao-light);
+    border: 1px solid rgba(220,38,38,0.3); border-radius: 3px; padding: 1px 5px;
+    font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;
+    display: inline-block; margin-bottom: 0.4rem;
+  }
+  .emenda-bar-row { margin-bottom: 0.7rem; }
+  .emenda-label { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 0.25rem; }
+  .emenda-val { font-family: 'Space Mono', monospace; color: var(--text2); }
+  .emenda-track { height: 8px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+  .emenda-fill { height: 100%; background: var(--accent); border-radius: 99px; }
+  .divider { height: 1px; background: var(--border); margin: 0.6rem 0; }
+  .ranking-tabs {
+    display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--border);
+    padding: 0 1.25rem; scrollbar-width: none;
+  }
+  .ranking-tabs::-webkit-scrollbar { display: none; }
+  .rtab {
+    flex-shrink: 0; padding: 0.75rem 1rem; font-size: 0.75rem;
+    font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .rtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .rank-list { padding: 1.25rem; max-width: 700px; margin: 0 auto; }
+  .rank-item {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem;
+    margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.9rem;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .rank-item:hover { border-color: var(--border2); }
+  .rank-num { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.8rem; color: var(--text3); width: 22px; flex-shrink: 0; }
+  .rank-num.top { color: var(--nao-light); }
+  .rank-avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--bg3);
+    border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--text2); flex-shrink: 0;
+  }
+  .rank-info { flex: 1; }
+  .rank-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; }
+  .rank-sub { font-size: 0.7rem; color: var(--text2); }
+  .rank-score { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+  .rank-score.bad { color: var(--nao-light); }
+  .rank-score.neutral { color: var(--text2); font-size: 0.75rem; }
+  .compare-page { padding: 1.25rem; max-width: 800px; margin: 0 auto; }
+  .compare-header { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; margin-bottom: 0.4rem; }
+  .compare-sub { font-size: 0.82rem; color: var(--text2); margin-bottom: 1.5rem; }
+  .compare-select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1.5rem; }
+  @media(min-width:600px) { .compare-select-row { grid-template-columns: 1fr 1fr 1fr; } }
+  .compare-slot {
+    background: var(--bg2); border: 1.5px dashed var(--border2); border-radius: 10px;
+    padding: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s;
+  }
+  .compare-slot.filled { border-style: solid; border-color: var(--border2); }
+  .compare-slot:hover { border-color: var(--accent); }
+  .compare-slot-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .compare-slot-label { font-size: 0.72rem; color: var(--text2); font-family: 'Space Mono', monospace; }
+  .compare-slot-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; margin-top: 0.25rem; }
+  .compare-table { width: 100%; border-collapse: collapse; }
+  .compare-table th, .compare-table td { padding: 0.65rem 0.5rem; text-align: center; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+  .compare-table th { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; }
+  .compare-table td:first-child { text-align: left; color: var(--text2); font-size: 0.78rem; }
+  .compare-table tr:hover td { background: var(--bg3); }
+  .bottom-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    padding: 0.5rem 0 max(0.5rem, env(safe-area-inset-bottom)); z-index: 100;
+  }
+  .bn-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px;
+    cursor: pointer; font-size: 0.58rem; font-family: 'Space Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--text3); transition: color 0.2s;
+  }
+  .bn-item.active { color: var(--accent); }
+  .bn-icon { font-size: 1.15rem; line-height: 1; }
+  .pb { padding-bottom: 80px; }
+  footer {
+    border-top: 1px solid var(--border); padding: 2rem 1.25rem 6rem;
+    text-align: center; color: var(--text3); font-size: 0.72rem;
+    font-family: 'Space Mono', monospace; line-height: 1.9;
+  }
+  footer a { color: var(--text2); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showPage('home')">
+    <span class="logo-dot"></span>Voto Exposto
+  </div>
+  <div class="nav-links">
+    <span class="nav-link" onclick="showPage('ranking')">Rankings</span>
+    <span class="nav-link" onclick="showPage('compare')">Comparar</span>
+    <span class="nav-badge">Beta</span>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active pb">
+  <div class="hero">
+    <span class="hero-eyebrow">🇧🇷 Transparência parlamentar</span>
+    <h1>Descubra como seu<br>deputado <em>realmente</em> vota</h1>
+    <p>Dados oficiais da Câmara e Senado. Sem opinião, sem viés — só os fatos. Busque qualquer parlamentar e veja o histórico completo.</p>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="Nome, partido ou estado — ex: 'PT-SP'" id="searchInput" onkeyup="handleSearch(event)">
+      <button class="search-btn" onclick="showPage('results')">Buscar</button>
+    </div>
+    <div class="search-tags">
+      <span class="tag" onclick="setSearch('PT')">PT</span>
+      <span class="tag" onclick="setSearch('PL')">PL</span>
+      <span class="tag" onclick="setSearch('MDB')">MDB</span>
+      <span class="tag" onclick="setSearch('UNIÃO')">UNIÃO</span>
+      <span class="tag" onclick="setSearch('SP')">SP</span>
+      <span class="tag" onclick="setSearch('RJ')">RJ</span>
+      <span class="tag" onclick="setSearch('MG')">MG</span>
+    </div>
+  </div>
+
+  <div class="data-banner" style="margin:0 1.25rem 0.5rem;max-width:860px;margin-left:auto;margin-right:auto;">
+    <span>⚠️</span>
+    <span>Protótipo com dados simulados. Na versão real, dados virão da API oficial da Câmara dos Deputados, Senado Federal e Portal da Transparência.</span>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-label">Destaques</div><div class="section-title">Rankings rápidos</div></div>
+      <span class="see-all" onclick="showPage('ranking')">Ver todos →</span>
+    </div>
+    <div class="rank-grid">
+      <div class="rank-card" onclick="showPage('ranking')"><div class="rank-card-icon">💤</div><div class="rank-card-title">Mais faltosos</div><div class="rank-card-sub">Quem menos apareceu pras votações este ano</div></div>
+      <div class="rank-card" onclick="showPage('ranking')"><div class="rank-card-icon">🙈</div><div class="rank-card-title">Contra transparência</div><div class="rank-card-sub">Votaram contra fiscalização e acesso a informação</div></div>
+      <div class="rank-card" onclick="showPage('ranking')"><div class="rank-card-icon">🔄</div><div class="rank-card-title">Desobedientes</div><div class="rank-card-sub">Mais vezes contra o próprio partido</div></div>
+      <div class="rank-card" onclick="showPage('ranking')"><div class="rank-card-icon">💰</div><div class="rank-card-title">Emendas concentradas</div><div class="rank-card-sub">Mandaram mais pra poucos municípios</div></div>
+      <div class="rank-card" onclick="showPage('ranking')"><div class="rank-card-icon">✅</div><div class="rank-card-title">Mais presentes</div><div class="rank-card-sub">Presença acima de 95% em todos os plenários</div></div>
+      <div class="rank-card" onclick="showPage('ranking')"><div class="rank-card-icon">📊</div><div class="rank-card-title">Por partido</div><div class="rank-card-sub">Médias de presença e votação por legenda</div></div>
+    </div>
+  </div>
+
+  <div class="section" style="padding-top:0">
+    <div class="section-header">
+      <div><div class="section-label">Câmara & Senado</div><div class="section-title">Votações polêmicas recentes</div></div>
+    </div>
+    <div class="vote-row" onclick="showPage('results')">
+      <div><span class="polemic-tag">🔥 Polêmica</span><div class="vote-title">PL 1087/2024 — Regulamentação do mercado de apostas esportivas</div><div class="vote-meta">Câmara · 12/03/2025</div></div>
+      <div class="vote-placar"><span class="placar-num p-sim">✓ 312</span><span class="placar-num" style="color:var(--text3)">·</span><span class="placar-num p-nao">✗ 103</span></div>
+    </div>
+    <div class="vote-row" onclick="showPage('results')">
+      <div><span class="polemic-tag">🔥 Polêmica</span><div class="vote-title">PEC 45/2019 — Reforma tributária (2ª votação)</div><div class="vote-meta">Câmara · 07/07/2023</div></div>
+      <div class="vote-placar"><span class="placar-num p-sim">✓ 382</span><span class="placar-num" style="color:var(--text3)">·</span><span class="placar-num p-nao">✗ 118</span></div>
+    </div>
+    <div class="vote-row" onclick="showPage('results')">
+      <div><div class="vote-title">PL 2903/2023 — Marco Temporal para terras indígenas</div><div class="vote-meta">Câmara · 30/05/2023</div></div>
+      <div class="vote-placar"><span class="placar-num p-sim">✓ 283</span><span class="placar-num" style="color:var(--text3)">·</span><span class="placar-num p-nao">✗ 155</span></div>
+    </div>
+    <div class="vote-row" onclick="showPage('results')">
+      <div><span class="polemic-tag">🔥 Polêmica</span><div class="vote-title">PEC da Anistia — 8 de Janeiro</div><div class="vote-meta">Câmara · 18/12/2024</div></div>
+      <div class="vote-placar"><span class="placar-num p-sim">✓ 297</span><span class="placar-num" style="color:var(--text3)">·</span><span class="placar-num p-nao">✗ 131</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="page-results" class="page pb">
+  <div class="results-wrap">
+    <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1.25rem;">
+      <span style="color:var(--text2);cursor:pointer;font-size:1.3rem;line-height:1" onclick="showPage('home')">←</span>
+      <div><div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px">4 resultados encontrados</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;">Deputados Federais · SP</div></div>
+    </div>
+    <div class="result-item" onclick="showPage('profile')">
+      <div class="result-avatar" style="background:#1e293b;color:#60a5fa">AA</div>
+      <div><div class="result-name">Alexandre Almeida</div><div class="result-meta">PT · São Paulo (SP) · Deputado Federal</div><div class="source-note" style="margin-top:3px"><span class="source-dot"></span><span>Presença: <strong style="color:var(--sim-light)">91%</strong></span><span class="source-dot"></span><span>Emendas: R$ 12,3M</span></div></div>
+      <div class="result-badge">Ver →</div>
+    </div>
+    <div class="result-item" onclick="showPage('profile')">
+      <div class="result-avatar" style="background:#1e1a29;color:#a78bfa">MF</div>
+      <div><div class="result-name">Marina Ferreira</div><div class="result-meta">MDB · Campinas (SP) · Deputada Federal</div><div class="source-note" style="margin-top:3px"><span class="source-dot"></span><span>Presença: <strong style="color:var(--nao-light)">68%</strong></span><span class="source-dot"></span><span>Emendas: R$ 8,7M</span></div></div>
+      <div class="result-badge">Ver →</div>
+    </div>
+    <div class="result-item" onclick="showPage('profile')">
+      <div class="result-avatar" style="background:#1a1e29;color:#38bdf8">RC</div>
+      <div><div class="result-name">Roberto Cavalcanti</div><div class="result-meta">PL · Santos (SP) · Deputado Federal</div><div class="source-note" style="margin-top:3px"><span class="source-dot"></span><span>Presença: <strong style="color:var(--sim-light)">88%</strong></span><span class="source-dot"></span><span>Emendas: R$ 22,1M</span></div></div>
+      <div class="result-badge">Ver →</div>
+    </div>
+    <div class="result-item" onclick="showPage('profile')">
+      <div class="result-avatar" style="background:#1a291a;color:#4ade80">LB</div>
+      <div><div class="result-name">Luciana Barreto</div><div class="result-meta">UNIÃO · Ribeirão Preto (SP) · Deputada Federal</div><div class="source-note" style="margin-top:3px"><span class="source-dot"></span><span>Presença: <strong style="color:var(--ausente-light)">74%</strong></span><span class="source-dot"></span><span>Emendas: R$ 15,0M</span></div></div>
+      <div class="result-badge">Ver →</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="page-profile" class="page pb">
+  <div class="profile-header">
+    <div class="profile-back" onclick="showPage('results')">← voltar à busca</div>
+    <div class="profile-top">
+      <div class="profile-photo">AA</div>
+      <div>
+        <div class="profile-name">Alexandre Almeida</div>
+        <div class="profile-badges">
+          <span class="badge badge-partido">PT</span>
+          <span class="badge badge-estado">São Paulo — SP</span>
+          <span class="badge badge-estado">Dep. Federal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="profile-body">
+    <div class="score-row" style="margin-top:1rem">
+      <div class="score-card"><div class="score-val green">91%</div><div class="score-label">Presença</div></div>
+      <div class="score-card"><div class="score-val green">72%</div><div class="score-label">Votos Sim</div></div>
+      <div class="score-card"><div class="score-val yellow">84%</div><div class="score-label">Alinhamento partido</div></div>
+    </div>
+    <div class="presence-wrap">
+      <svg class="ring-svg" width="64" height="64" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#1a1a1a" stroke-width="8"/>
+        <circle cx="32" cy="32" r="26" fill="none" stroke="#16a34a" stroke-width="8" stroke-dasharray="148.4" stroke-dashoffset="13" stroke-linecap="round" transform="rotate(-90 32 32)"/>
+        <text x="32" y="36" text-anchor="middle" font-family="'Syne',sans-serif" font-weight="800" font-size="11" fill="#f0f0f0">91%</text>
+      </svg>
+      <div class="presence-text">
+        <h3>Presença em plenário</h3>
+        <p>Compareceu em <strong>412 de 453</strong> votações em 2024.<br>Média da Câmara: 78%.</p>
+        <div style="margin-top:6px"><span class="pill chip-ok">Acima da média</span></div>
+      </div>
+    </div>
+    <div class="vote-bar-wrap">
+      <div class="bar-title">Distribuição dos votos em 2024</div>
+      <div class="bar-track">
+        <div class="bar-seg" style="width:72%;background:var(--sim)"></div>
+        <div class="bar-seg" style="width:14%;background:var(--nao)"></div>
+        <div class="bar-seg" style="width:9%;background:var(--ausente)"></div>
+        <div class="bar-seg" style="width:5%;background:var(--abstencao)"></div>
+      </div>
+      <div class="bar-legend">
+        <div class="leg-item"><div class="bar-dot" style="background:var(--sim)"></div>Sim 72%</div>
+        <div class="leg-item"><div class="bar-dot" style="background:var(--nao)"></div>Não 14%</div>
+        <div class="leg-item"><div class="bar-dot" style="background:var(--ausente)"></div>Ausente 9%</div>
+        <div class="leg-item"><div class="bar-dot" style="background:var(--abstencao)"></div>Abstenção 5%</div>
+      </div>
+    </div>
+    <div class="party-align-wrap">
+      <div class="party-align-title">Alinhamento com o PT</div>
+      <div class="align-pct">84%</div>
+      <div class="align-note" style="margin-bottom:0.6rem">Votou junto com a maioria do partido em 84% das votações.</div>
+      <div class="align-bar-bg"><div class="align-bar-fill" style="width:84%;background:linear-gradient(to right,var(--sim),var(--sim-light))"></div></div>
+      <div class="source-note" style="margin-top:0.5rem"><span class="source-dot"></span><span>Desacordos notáveis: PEC da Anistia (Não) · Regulamentação de Bets (Sim — partido foi contra)</span></div>
+    </div>
+
+    <div class="sub-heading">🔥 Votações polêmicas</div>
+    <div class="vote-item">
+      <span class="polemic-tag">🔥 Polêmica</span>
+      <div class="vote-item-top"><div class="vote-item-title">PEC da Anistia — 8 de Janeiro</div><span class="voto-badge voto-nao">✗ Não</span></div>
+      <div class="vote-item-bottom"><div class="vote-date">18/12/2024 · Câmara</div><div class="vote-placar2"><span class="p-sim">✓ 297</span><span style="color:var(--text3)">·</span><span class="p-nao">✗ 131</span></div></div>
+    </div>
+    <div class="vote-item">
+      <span class="polemic-tag">🔥 Polêmica</span>
+      <div class="vote-item-top"><div class="vote-item-title">PL 1087/2024 — Regulamentação de apostas esportivas (Bets)</div><span class="voto-badge voto-sim">✓ Sim</span></div>
+      <div class="vote-item-bottom"><div class="vote-date">12/03/2025 · Câmara</div><div class="vote-placar2"><span class="p-sim">✓ 312</span><span style="color:var(--text3)">·</span><span class="p-nao">✗ 103</span></div></div>
+    </div>
+    <div class="vote-item">
+      <div class="vote-item-top"><div class="vote-item-title">PL 2903/2023 — Marco Temporal para terras indígenas</div><span class="voto-badge voto-nao">✗ Não</span></div>
+      <div class="vote-item-bottom"><div class="vote-date">30/05/2023 · Câmara</div><div class="vote-placar2"><span class="p-sim">✓ 283</span><span style="color:var(--text3)">·</span><span class="p-nao">✗ 155</span></div></div>
+    </div>
+    <div class="vote-item">
+      <div class="vote-item-top"><div class="vote-item-title">PEC 45/2019 — Reforma Tributária (2ª votação)</div><span class="voto-badge voto-sim">✓ Sim</span></div>
+      <div class="vote-item-bottom"><div class="vote-date">07/07/2023 · Câmara</div><div class="vote-placar2"><span class="p-sim">✓ 382</span><span style="color:var(--text3)">·</span><span class="p-nao">✗ 118</span></div></div>
+    </div>
+    <div class="vote-item">
+      <div class="vote-item-top"><div class="vote-item-title">PLP 68/2024 — Lei Complementar Tributária</div><span class="voto-badge voto-aus">— Ausente</span></div>
+      <div class="vote-item-bottom"><div class="vote-date">11/12/2024 · Câmara</div><div class="vote-placar2"><span class="p-sim">✓ 344</span><span style="color:var(--text3)">·</span><span class="p-nao">✗ 77</span></div></div>
+    </div>
+
+    <div class="sub-heading">💰 Emendas parlamentares 2024</div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.75rem;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text2);text-transform:uppercase">Total empenhado</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--accent)">R$ 12,3M</div>
+      </div>
+      <div class="divider"></div>
+      <div class="emenda-bar-row"><div class="emenda-label"><span>Santo André (SP)</span><span class="emenda-val">R$ 4,1M</span></div><div class="emenda-track"><div class="emenda-fill" style="width:100%"></div></div></div>
+      <div class="emenda-bar-row"><div class="emenda-label"><span>São Bernardo do Campo (SP)</span><span class="emenda-val">R$ 3,7M</span></div><div class="emenda-track"><div class="emenda-fill" style="width:90%"></div></div></div>
+      <div class="emenda-bar-row"><div class="emenda-label"><span>Saúde / Hospitais</span><span class="emenda-val">R$ 2,5M</span></div><div class="emenda-track"><div class="emenda-fill" style="width:61%"></div></div></div>
+      <div class="emenda-bar-row"><div class="emenda-label"><span>Educação / Creches</span><span class="emenda-val">R$ 1,2M</span></div><div class="emenda-track"><div class="emenda-fill" style="width:29%"></div></div></div>
+      <div class="emenda-bar-row"><div class="emenda-label"><span>Outros municípios</span><span class="emenda-val">R$ 0,8M</span></div><div class="emenda-track"><div class="emenda-fill" style="width:19%"></div></div></div>
+      <div class="source-note" style="margin-top:0.75rem"><span class="source-dot"></span><span>Fonte: Portal da Transparência · Exercício 2024</span></div>
+    </div>
+    <div style="display:flex;gap:0.6rem;margin-bottom:2rem">
+      <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.75rem;text-align:center;"><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:var(--accent)">6</div><div style="font-size:0.7rem;color:var(--text2);font-family:'Space Mono',monospace;text-transform:uppercase">municípios</div></div>
+      <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.75rem;text-align:center;"><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:var(--sim-light)">12</div><div style="font-size:0.7rem;color:var(--text2);font-family:'Space Mono',monospace;text-transform:uppercase">projetos</div></div>
+      <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.75rem;text-align:center;"><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem">Conc.</div><div style="font-size:0.7rem;color:var(--text2);font-family:'Space Mono',monospace;text-transform:uppercase">distribuição</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div id="page-ranking" class="page pb">
+  <div style="padding:1.25rem 1.25rem 0.75rem;max-width:700px;margin:0 auto;">
+    <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Câmara dos Deputados · 2024</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-0.4px">Rankings parlamentares</div>
+  </div>
+  <div class="ranking-tabs">
+    <div class="rtab active" onclick="switchTab(this,'faltosos')">💤 Mais faltosos</div>
+    <div class="rtab" onclick="switchTab(this,'transparencia')">🙈 Anti-transparência</div>
+    <div class="rtab" onclick="switchTab(this,'rebeldes')">🔄 Rebeldes</div>
+    <div class="rtab" onclick="switchTab(this,'emendas')">💰 Emendas</div>
+  </div>
+  <div id="tab-faltosos" class="rank-list">
+    <div style="font-size:0.75rem;color:var(--text2);margin-bottom:1rem;line-height:1.6">Deputados com menor índice de presença nas votações em plenário em 2024. Cada ausência injustificada desconta do salário, mas muitos ainda faltam.</div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">1</div><div class="rank-avatar">CF</div><div class="rank-info"><div class="rank-name">Carlos Figueiredo</div><div class="rank-sub">PP · Pará (PA)</div></div><div class="rank-score bad">38%</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">2</div><div class="rank-avatar">JM</div><div class="rank-info"><div class="rank-name">José Mendonça Neto</div><div class="rank-sub">AVANTE · Bahia (BA)</div></div><div class="rank-score bad">41%</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">3</div><div class="rank-avatar">RN</div><div class="rank-info"><div class="rank-name">Rosemary Novaes</div><div class="rank-sub">MDB · Maranhão (MA)</div></div><div class="rank-score bad">47%</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num">4</div><div class="rank-avatar">DP</div><div class="rank-info"><div class="rank-name">Davi Palmeira</div><div class="rank-sub">REPUBLICANOS · Amazonas (AM)</div></div><div class="rank-score bad">52%</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num">5</div><div class="rank-avatar">IS</div><div class="rank-info"><div class="rank-name">Iracema Souza Lima</div><div class="rank-sub">SOLIDARIEDADE · Ceará (CE)</div></div><div class="rank-score bad">55%</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num">6</div><div class="rank-avatar">PR</div><div class="rank-info"><div class="rank-name">Paulo Renato Moura</div><div class="rank-sub">UNIÃO · Minas Gerais (MG)</div></div><div class="rank-score bad">57%</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num">7</div><div class="rank-avatar">BL</div><div class="rank-info"><div class="rank-name">Bruno Lacerda</div><div class="rank-sub">PL · Rio de Janeiro (RJ)</div></div><div class="rank-score bad">59%</div></div>
+    <div style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;text-align:center;margin-top:1rem">Exibindo 7 de 513 deputados · Média da Câmara: 78%</div>
+  </div>
+  <div id="tab-transparencia" class="rank-list" style="display:none">
+    <div style="font-size:0.75rem;color:var(--text2);margin-bottom:1rem;line-height:1.6">Deputados com maior número de votos contrários a projetos de transparência, acesso à informação, fiscalização e controle público.</div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">1</div><div class="rank-avatar">WB</div><div class="rank-info"><div class="rank-name">Walter Brant</div><div class="rank-sub">PL · Minas Gerais (MG)</div></div><div class="rank-score bad">8/9</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">2</div><div class="rank-avatar">SM</div><div class="rank-info"><div class="rank-name">Sandra Marquetti</div><div class="rank-sub">NOVO · São Paulo (SP)</div></div><div class="rank-score bad">7/9</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">3</div><div class="rank-avatar">AL</div><div class="rank-info"><div class="rank-name">Arnaldo Luz</div><div class="rank-sub">PP · Tocantins (TO)</div></div><div class="rank-score bad">6/9</div></div>
+    <div style="font-size:0.7rem;color:var(--text3);font-family:'Space Mono',monospace;text-align:center;margin-top:1rem">Score: votos anti-transparência / total de votações relevantes no período</div>
+  </div>
+  <div id="tab-rebeldes" class="rank-list" style="display:none">
+    <div style="font-size:0.75rem;color:var(--text2);margin-bottom:1rem;line-height:1.6">Deputados que mais divergiram da orientação de voto do próprio partido em 2024.</div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">1</div><div class="rank-avatar">TC</div><div class="rank-info"><div class="rank-name">Tarcísio Correia</div><div class="rank-sub">MDB · Piauí (PI)</div></div><div class="rank-score neutral">34% contra partido</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">2</div><div class="rank-avatar">FV</div><div class="rank-info"><div class="rank-name">Fernanda Vasconcelos</div><div class="rank-sub">PSDB · Goiás (GO)</div></div><div class="rank-score neutral">28% contra partido</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">3</div><div class="rank-avatar">GC</div><div class="rank-info"><div class="rank-name">Gabriel Campinas</div><div class="rank-sub">PT · Paraná (PR)</div></div><div class="rank-score neutral">22% contra partido</div></div>
+  </div>
+  <div id="tab-emendas" class="rank-list" style="display:none">
+    <div style="font-size:0.75rem;color:var(--text2);margin-bottom:1rem;line-height:1.6">Deputados com maior concentração de emendas em menos municípios. Alta concentração pode indicar favorecimento de redutos eleitorais.</div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">1</div><div class="rank-avatar">VO</div><div class="rank-info"><div class="rank-name">Valdir Oliveira</div><div class="rank-sub">PP · Bahia (BA) · R$ 28M</div></div><div class="rank-score bad">1 município</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">2</div><div class="rank-avatar">MR</div><div class="rank-info"><div class="rank-name">Marcos Ribeiro Dias</div><div class="rank-sub">AVANTE · Paraíba (PB) · R$ 19M</div></div><div class="rank-score bad">2 municípios</div></div>
+    <div class="rank-item" onclick="showPage('profile')"><div class="rank-num top">3</div><div class="rank-avatar">HA</div><div class="rank-info"><div class="rank-name">Henrique Almada</div><div class="rank-sub">PSD · Maranhão (MA) · R$ 22M</div></div><div class="rank-score bad">3 municípios</div></div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div id="page-compare" class="page pb">
+  <div class="compare-page">
+    <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Ferramenta</div>
+    <div class="compare-header">Comparador de parlamentares</div>
+    <div class="compare-sub">Escolha até 3 deputados ou senadores para ver como votaram nas mesmas pautas.</div>
+    <div class="compare-select-row">
+      <div class="compare-slot filled" onclick="showPage('results')"><div class="compare-slot-icon">👤</div><div class="compare-slot-name">Alexandre Almeida</div><div class="compare-slot-label">PT · SP</div></div>
+      <div class="compare-slot filled" onclick="showPage('results')"><div class="compare-slot-icon">👤</div><div class="compare-slot-name">Roberto Cavalcanti</div><div class="compare-slot-label">PL · SP</div></div>
+      <div class="compare-slot" onclick="showPage('results')"><div class="compare-slot-icon">➕</div><div class="compare-slot-label">Adicionar parlamentar</div></div>
+    </div>
+    <div class="sub-heading" style="font-size:0.85rem">Votações em comum</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table class="compare-table">
+        <thead><tr><th style="text-align:left;min-width:180px">Votação</th><th>Alexandre<br><span style="color:var(--text3);font-size:0.6rem">PT · SP</span></th><th>Roberto<br><span style="color:var(--text3);font-size:0.6rem">PL · SP</span></th></tr></thead>
+        <tbody>
+          <tr><td>PEC Anistia — 8 de Janeiro</td><td><span class="voto-badge voto-nao" style="font-size:0.65rem;padding:3px 7px">✗ Não</span></td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td></tr>
+          <tr><td>Regulamentação de Bets</td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td></tr>
+          <tr><td>Marco Temporal indígenas</td><td><span class="voto-badge voto-nao" style="font-size:0.65rem;padding:3px 7px">✗ Não</span></td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td></tr>
+          <tr><td>Reforma Tributária PEC 45</td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td></tr>
+          <tr><td>PL Transparência CNPJ</td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td><td><span class="voto-badge voto-nao" style="font-size:0.65rem;padding:3px 7px">✗ Não</span></td></tr>
+          <tr><td>Desoneração da Folha</td><td><span class="voto-badge voto-aus" style="font-size:0.65rem;padding:3px 7px">— Aus.</span></td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td></tr>
+          <tr><td>PL Trabalho escravo</td><td><span class="voto-badge voto-sim" style="font-size:0.65rem;padding:3px 7px">✓ Sim</span></td><td><span class="voto-badge voto-nao" style="font-size:0.65rem;padding:3px 7px">✗ Não</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+      <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.9rem;text-align:center;"><div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Concordâncias</div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;">3/7</div><div style="font-size:0.7rem;color:var(--text2)">Votaram igual em 43%</div></div>
+      <div style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:0.9rem;text-align:center;"><div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Divergências</div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--nao-light)">4/7</div><div style="font-size:0.7rem;color:var(--text2)">Votaram diferente em 57%</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>Dados: <a href="#">Câmara dos Deputados</a> · <a href="#">Senado Federal</a> · <a href="#">Portal da Transparência</a> · <a href="#">Base dos Dados</a></p>
+  <p>Código aberto no <a href="#">GitHub</a> · Sem publicidade · Sem criar conta · Atualização semanal</p>
+  <p style="margin-top:4px;color:var(--text3)">Protótipo para fins de demonstração — dados simulados.</p>
+</footer>
+
+<div class="bottom-nav">
+  <div class="bn-item active" id="bn-home" onclick="showPage('home')"><div class="bn-icon">🏠</div><div>Início</div></div>
+  <div class="bn-item" id="bn-results" onclick="showPage('results')"><div class="bn-icon">🔍</div><div>Busca</div></div>
+  <div class="bn-item" id="bn-ranking" onclick="showPage('ranking')"><div class="bn-icon">📊</div><div>Rankings</div></div>
+  <div class="bn-item" id="bn-compare" onclick="showPage('compare')"><div class="bn-icon">⚖️</div><div>Comparar</div></div>
+</div>
+
+<script>
+  let activeTabId = 'faltosos';
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+    const bn = document.getElementById('bn-' + id);
+    if (bn) bn.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function handleSearch(e) { if (e.key === 'Enter') showPage('results'); }
+  function setSearch(val) { document.getElementById('searchInput').value = val; showPage('results'); }
+  function switchTab(el, tabId) {
+    document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + activeTabId).style.display = 'none';
+    document.getElementById('tab-' + tabId).style.display = 'block';
+    activeTabId = tabId;
+  }
+</script>
+</body>
+</html>

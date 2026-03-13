@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.wrangler/
+
+# Build output
+dist/
+.astro/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data pipeline temp files
+data/raw/
+data/processed/
+
+# Debug
+npm-debug.log*

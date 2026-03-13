@@ -1,0 +1,417 @@
+---
+// Vote detail page — shows full voting breakdown for a single vote
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { formatDate, getChamberLabel, getVoteBadgeClass, getVoteLabel, getInitials } from '@/lib/types';
+import type { VotePosition } from '@/lib/types';
+import { mockVoteDetail } from '@/lib/mock-data';
+
+const { chamber, id } = Astro.params;
+const voteId = parseInt(id ?? '0', 10);
+
+const detail = mockVoteDetail(voteId);
+if (!detail) {
+  return Astro.redirect('/404');
+}
+
+const { vote, voters, guidance } = detail;
+
+// Group voters by position
+const byPosition = {
+  SIM: voters.filter((v) => v.position === 'SIM'),
+  NAO: voters.filter((v) => v.position === 'NAO'),
+  AUSENTE: voters.filter((v) => v.position === 'AUSENTE'),
+  OBSTRUCAO: voters.filter((v) => v.position === 'OBSTRUCAO'),
+  ABSTENCAO: voters.filter((v) => v.position === 'ABSTENCAO'),
+};
+
+const total = voters.length;
+const yesPercent = total > 0 ? ((byPosition.SIM.length / total) * 100).toFixed(0) : '0';
+const noPercent = total > 0 ? ((byPosition.NAO.length / total) * 100).toFixed(0) : '0';
+const absentPercent = total > 0 ? ((byPosition.AUSENTE.length / total) * 100).toFixed(0) : '0';
+
+// Filter by position from URL query param
+const filterPosition = Astro.url.searchParams.get('filtro') as VotePosition | null;
+const filteredVoters = filterPosition ? voters.filter((v) => v.position === filterPosition) : voters;
+
+// Searchable by party from query param
+const filterParty = Astro.url.searchParams.get('partido')?.toUpperCase() || '';
+const displayVoters = filterParty
+  ? filteredVoters.filter((v) => v.politician.party === filterParty)
+  : filteredVoters;
+---
+
+<BaseLayout title={`${vote.description} — Voto Exposto`} description={vote.summary}>
+  <div class="vote-detail">
+    <!-- Back link -->
+    <a href="/" class="back-link mono">← voltar</a>
+
+    <!-- Header -->
+    <div class="vote-detail__header card">
+      {vote.isHighlighted && <span class="badge badge--polemic">🔥 Polêmica</span>}
+      <h1 class="vote-detail__title">{vote.description}</h1>
+      <p class="vote-detail__summary">{vote.summary}</p>
+      <div class="vote-detail__meta mono">
+        <span>{getChamberLabel(vote.chamber)}</span>
+        <span class="dot">·</span>
+        <span>{formatDate(vote.date)}</span>
+        <span class="dot">·</span>
+        <span>Resultado: <strong>{vote.result}</strong></span>
+      </div>
+    </div>
+
+    <!-- Score summary -->
+    <div class="vote-detail__scores">
+      <div class="score-card score-card--yes">
+        <div class="score-card__value">{vote.yesCount}</div>
+        <div class="score-card__label mono">Sim ({yesPercent}%)</div>
+      </div>
+      <div class="score-card score-card--no">
+        <div class="score-card__value">{vote.noCount}</div>
+        <div class="score-card__label mono">Não ({noPercent}%)</div>
+      </div>
+      <div class="score-card score-card--absent">
+        <div class="score-card__value">{vote.absentCount}</div>
+        <div class="score-card__label mono">Ausentes ({absentPercent}%)</div>
+      </div>
+    </div>
+
+    <!-- Vote distribution bar -->
+    <div class="vote-detail__bar card">
+      <div class="bar-title mono">Distribuição dos votos</div>
+      <div class="bar-track">
+        <div class="bar-seg bar-seg--yes" style={`width:${yesPercent}%`}></div>
+        <div class="bar-seg bar-seg--no" style={`width:${noPercent}%`}></div>
+        <div class="bar-seg bar-seg--absent" style={`width:${absentPercent}%`}></div>
+      </div>
+      <div class="bar-legend">
+        <div class="leg-item"><div class="bar-dot bar-dot--yes"></div><span>Sim {yesPercent}%</span></div>
+        <div class="leg-item"><div class="bar-dot bar-dot--no"></div><span>Não {noPercent}%</span></div>
+        <div class="leg-item"><div class="bar-dot bar-dot--absent"></div><span>Ausente {absentPercent}%</span></div>
+      </div>
+    </div>
+
+    <!-- Party guidance -->
+    {guidance.length > 0 && (
+      <div class="vote-detail__guidance card">
+        <h2 class="section-title">Orientação dos partidos</h2>
+        <div class="guidance-grid">
+          {guidance.map((g) => (
+            <div class="guidance-item">
+              <span class="guidance-party mono">{g.party}</span>
+              <span class={`guidance-vote ${g.guidance === 'SIM' ? 'guidance-vote--yes' : g.guidance === 'NAO' ? 'guidance-vote--no' : 'guidance-vote--free'}`}>
+                {g.guidance === 'SIM' ? '✓ Sim' : g.guidance === 'NAO' ? '✗ Não' : '○ Liberado'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Filter tabs -->
+    <div class="vote-detail__filters">
+      <h2 class="section-title">Votos individuais</h2>
+      <div class="filter-tabs">
+        <a href={`/votacao/${chamber}/${id}`} class:list={['filter-tab', 'mono', { active: !filterPosition }]}>
+          Todos ({voters.length})
+        </a>
+        <a href={`/votacao/${chamber}/${id}?filtro=SIM`} class:list={['filter-tab', 'filter-tab--yes', 'mono', { active: filterPosition === 'SIM' }]}>
+          Sim ({byPosition.SIM.length})
+        </a>
+        <a href={`/votacao/${chamber}/${id}?filtro=NAO`} class:list={['filter-tab', 'filter-tab--no', 'mono', { active: filterPosition === 'NAO' }]}>
+          Não ({byPosition.NAO.length})
+        </a>
+        <a href={`/votacao/${chamber}/${id}?filtro=AUSENTE`} class:list={['filter-tab', 'filter-tab--absent', 'mono', { active: filterPosition === 'AUSENTE' }]}>
+          Ausente ({byPosition.AUSENTE.length})
+        </a>
+      </div>
+    </div>
+
+    <!-- Voter list -->
+    <div class="voter-list">
+      {displayVoters.length === 0 && (
+        <p class="empty-state">Nenhum parlamentar encontrado com esse filtro.</p>
+      )}
+      {displayVoters.map((v) => {
+        const badgeClass = getVoteBadgeClass(v.position);
+        const label = getVoteLabel(v.position);
+        const initials = getInitials(v.politician.name);
+        return (
+          <a href={`/politico/${v.politician.chamber}/${v.politician.id}`} class="voter-item card card--interactive">
+            <div class="voter-avatar" title={v.politician.name}>{initials}</div>
+            <div class="voter-info">
+              <div class="voter-name">{v.politician.name}</div>
+              <div class="voter-meta mono">{v.politician.party} · {v.politician.state}</div>
+            </div>
+            <span class={`vote-badge ${badgeClass}`}>{label}</span>
+          </a>
+        );
+      })}
+    </div>
+
+    <!-- Data source -->
+    <div class="source-note mono">
+      <span class="source-dot"></span>
+      <span>Fonte: API da {getChamberLabel(vote.chamber)} dos Deputados · Dados simulados (protótipo)</span>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .vote-detail {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 1.25rem;
+    padding-bottom: 6rem;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 1.25rem;
+    transition: color var(--transition-fast);
+  }
+  .back-link:hover { color: var(--text-primary); }
+
+  .vote-detail__header {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .vote-detail__title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+  }
+  .vote-detail__summary {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+  }
+  .vote-detail__meta {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .dot { color: var(--text-tertiary); }
+
+  /* Score cards */
+  .vote-detail__scores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .score-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 0.7rem;
+    text-align: center;
+  }
+  .score-card__value {
+    font-weight: 800;
+    font-size: 1.6rem;
+    line-height: 1;
+    margin-bottom: 0.15rem;
+  }
+  .score-card--yes .score-card__value { color: var(--vote-yes-light); }
+  .score-card--no .score-card__value { color: var(--vote-no-light); }
+  .score-card--absent .score-card__value { color: var(--vote-absent-light); }
+  .score-card__label {
+    font-size: 0.68rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Vote distribution bar */
+  .vote-detail__bar {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .bar-title {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.6rem;
+  }
+  .bar-track {
+    height: 10px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    background: var(--bg-tertiary);
+    display: flex;
+  }
+  .bar-seg { height: 100%; }
+  .bar-seg--yes { background: var(--vote-yes); }
+  .bar-seg--no { background: var(--vote-no); }
+  .bar-seg--absent { background: var(--vote-absent); }
+  .bar-legend {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+  .bar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .bar-dot--yes { background: var(--vote-yes); }
+  .bar-dot--no { background: var(--vote-no); }
+  .bar-dot--absent { background: var(--vote-absent); }
+
+  /* Party guidance */
+  .vote-detail__guidance {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+  }
+  .guidance-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .guidance-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.7rem;
+  }
+  .guidance-party {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .guidance-vote {
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+  .guidance-vote--yes { color: var(--vote-yes-light); }
+  .guidance-vote--no { color: var(--vote-no-light); }
+  .guidance-vote--free { color: var(--text-tertiary); }
+
+  /* Filter tabs */
+  .vote-detail__filters {
+    margin-bottom: 0.75rem;
+  }
+  .filter-tabs {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-primary);
+    scrollbar-width: none;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .filter-tab {
+    flex-shrink: 0;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+  }
+  .filter-tab:hover { color: var(--text-primary); }
+  .filter-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .filter-tab--yes.active { color: var(--vote-yes-light); border-bottom-color: var(--vote-yes); }
+  .filter-tab--no.active { color: var(--vote-no-light); border-bottom-color: var(--vote-no); }
+  .filter-tab--absent.active { color: var(--vote-absent-light); border-bottom-color: var(--vote-absent); }
+
+  /* Voter list */
+  .voter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .voter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .voter-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .voter-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .voter-name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+  }
+  .voter-meta {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: 2rem;
+    font-size: 0.88rem;
+  }
+
+  .source-note {
+    display: flex;
+    gap: 0.375rem;
+    align-items: center;
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    margin-top: 0.5rem;
+  }
+  .source-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+</style>

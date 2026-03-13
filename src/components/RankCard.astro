@@ -1,0 +1,42 @@
+---
+// RankCard — A card for a ranking category on the homepage
+export interface Props {
+  icon: string;
+  title: string;
+  description: string;
+  href?: string;
+}
+
+const { icon, title, description, href = '/rankings' } = Astro.props;
+---
+
+<a class="rank-card card card--interactive" href={href}>
+  <div class="rank-card__icon">{icon}</div>
+  <div class="rank-card__title">{title}</div>
+  <div class="rank-card__desc">{description}</div>
+</a>
+
+<style>
+  .rank-card {
+    text-decoration: none;
+    color: var(--text-primary);
+    display: block;
+  }
+
+  .rank-card__icon {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .rank-card__title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .rank-card__desc {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+</style>

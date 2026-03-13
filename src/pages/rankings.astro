@@ -1,0 +1,143 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import RankItem from '@components/RankItem.astro';
+import { mockRankings } from '@lib/mock-data';
+
+const tab = Astro.url.searchParams.get('tab') || 'faltosos';
+
+const tabs = [
+  { id: 'faltosos', icon: '💤', label: 'Mais faltosos' },
+  { id: 'transparencia', icon: '🙈', label: 'Anti-transparência' },
+  { id: 'rebeldes', icon: '🔄', label: 'Rebeldes' },
+  { id: 'emendas', icon: '💰', label: 'Emendas' },
+];
+
+const activeRanking = mockRankings[tab] || mockRankings['faltosos'];
+
+function getMetricValue(entry: any, tabId: string): string {
+  switch (tabId) {
+    case 'faltosos': return `${entry.value}%`;
+    case 'transparencia': return `${entry.value}%`;
+    case 'rebeldes': return `${entry.value}% contra partido`;
+    case 'emendas': return `${entry.value} município${entry.value !== 1 ? 's' : ''}`;
+    default: return String(entry.value);
+  }
+}
+
+function getDescription(tabId: string): string {
+  switch (tabId) {
+    case 'faltosos':
+      return 'Deputados com menor índice de presença nas votações em plenário em 2024. Cada ausência injustificada desconta do salário.';
+    case 'transparencia':
+      return 'Deputados com maior número de votos contrários a projetos de transparência, acesso à informação e fiscalização pública.';
+    case 'rebeldes':
+      return 'Deputados que mais divergiram da orientação de voto do próprio partido em 2024.';
+    case 'emendas':
+      return 'Deputados com maior concentração de emendas em menos municípios. Alta concentração pode indicar favorecimento de redutos eleitorais.';
+    default:
+      return '';
+  }
+}
+---
+
+<BaseLayout title="Rankings — Voto Exposto">
+  <div class="rankings-page">
+    <div class="container container-sm" style="padding-top: 1.25rem">
+      <div class="section-eyebrow">Câmara dos Deputados · 2024</div>
+      <h1 class="rankings-title">Rankings parlamentares</h1>
+    </div>
+
+    <div class="ranking-tabs">
+      {tabs.map((t) => (
+        <a
+          href={`/rankings?tab=${t.id}`}
+          class:list={['rtab', { active: t.id === tab }]}
+        >
+          {t.icon} {t.label}
+        </a>
+      ))}
+    </div>
+
+    <div class="container container-sm rank-list">
+      <p class="rank-description">{getDescription(tab)}</p>
+
+      {activeRanking.map((entry) => (
+        <RankItem
+          rank={entry.rank}
+          politician={entry.politician}
+          metricLabel={entry.metric}
+          metricValue={getMetricValue(entry, tab)}
+          isBad={tab === 'faltosos' || tab === 'transparencia'}
+        />
+      ))}
+
+      <div class="rank-footer mono">
+        Exibindo {activeRanking.length} de 513 deputados · Média da Câmara: 78%
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .rankings-title {
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: -0.4px;
+  }
+
+  .ranking-tabs {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-primary);
+    padding: 0 1.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .ranking-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rtab {
+    flex-shrink: 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .rtab:hover {
+    color: var(--text-primary);
+  }
+
+  .rtab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .rank-list {
+    padding-top: 1.25rem;
+    padding-bottom: 2rem;
+  }
+
+  .rank-description {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .rank-footer {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 1rem;
+  }
+</style>

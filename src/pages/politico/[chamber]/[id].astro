@@ -1,0 +1,448 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import VoteItem from '@components/VoteItem.astro';
+import DonutChart from '@islands/DonutChart';
+import PresenceRing from '@islands/PresenceRing';
+import { mockProfiles, mockPoliticianVotes, mockAmendments } from '@lib/mock-data';
+import { getInitials, formatCurrency, getChamberLabel, presenceColor } from '@lib/types';
+
+const { chamber, id } = Astro.params;
+const politicianId = Number(id);
+const profile = mockProfiles[politicianId];
+
+if (!profile) {
+  return Astro.redirect('/404');
+}
+
+const votes = mockPoliticianVotes[politicianId] || [];
+const amendments = mockAmendments[politicianId] || [];
+const initials = getInitials(profile.name);
+const chamberLabel = getChamberLabel(profile.chamber);
+const { stats } = profile;
+
+const totalAmendmentsAmount = amendments.reduce((s, a) => s + a.amount, 0);
+const maxAmendment = Math.max(...amendments.map((a) => a.amount), 1);
+
+// Vote distribution percentages
+const total = stats.yesVotes + stats.noVotes + stats.absentVotes + stats.obstructionVotes;
+const yesPct = Math.round((stats.yesVotes / total) * 100);
+const noPct = Math.round((stats.noVotes / total) * 100);
+const absentPct = Math.round((stats.absentVotes / total) * 100);
+const obstructionPct = 100 - yesPct - noPct - absentPct;
+
+const highlightedVotes = votes.filter((v) => v.vote.isHighlighted);
+---
+
+<BaseLayout title={`${profile.name} — Voto Exposto`}>
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="container container-sm">
+      <a href="javascript:history.back()" class="profile-back mono">← voltar à busca</a>
+      <div class="profile-top">
+        <div class="profile-photo">
+          {profile.photoUrl ? (
+            <img src={profile.photoUrl} alt={profile.name} />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </div>
+        <div>
+          <h1 class="profile-name">{profile.name}</h1>
+          <div class="profile-badges">
+            <span class="badge badge--party">{profile.party}</span>
+            <span class="badge badge--state">{profile.state}</span>
+            <span class="badge badge--state">{chamberLabel}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container container-sm profile-body">
+    <!-- Stats Grid -->
+    <div class="score-grid" style="margin-top: 1rem">
+      <div class="card score-card">
+        <div class="score-value score-value--green">{stats.presencePercent}%</div>
+        <div class="score-label">Presença</div>
+      </div>
+      <div class="card score-card">
+        <div class="score-value score-value--green">{yesPct}%</div>
+        <div class="score-label">Votos Sim</div>
+      </div>
+      <div class="card score-card">
+        <div class="score-value score-value--accent">{stats.partyAlignmentPercent}%</div>
+        <div class="score-label">Alinhamento partido</div>
+      </div>
+    </div>
+
+    <!-- Presence Ring -->
+    <div class="presence-wrap card">
+      <PresenceRing percent={stats.presencePercent} client:visible />
+      <div class="presence-text">
+        <h3>Presença em plenário</h3>
+        <p>
+          Compareceu em <strong>{Math.round(stats.totalVotes * stats.presencePercent / 100)} de {stats.totalVotes}</strong> votações em 2024.<br />
+          Média da {chamberLabel}: 78%.
+        </p>
+        {stats.presencePercent >= 78 ? (
+          <span class="pill pill--ok">Acima da média</span>
+        ) : (
+          <span class="pill pill--warn">Abaixo da média</span>
+        )}
+      </div>
+    </div>
+
+    <!-- Vote Distribution Bar -->
+    <div class="vote-bar-wrap">
+      <div class="bar-title mono">Distribuição dos votos em 2024</div>
+      <div class="bar-track">
+        <div class="bar-segment" style={`width: ${yesPct}%; background: var(--vote-yes)`}></div>
+        <div class="bar-segment" style={`width: ${noPct}%; background: var(--vote-no)`}></div>
+        <div class="bar-segment" style={`width: ${absentPct}%; background: var(--vote-absent)`}></div>
+        <div class="bar-segment" style={`width: ${obstructionPct}%; background: var(--vote-obstruction)`}></div>
+      </div>
+      <div class="bar-legend">
+        <div class="bar-legend-item"><div class="bar-legend-dot" style="background: var(--vote-yes)"></div>Sim {yesPct}%</div>
+        <div class="bar-legend-item"><div class="bar-legend-dot" style="background: var(--vote-no)"></div>Não {noPct}%</div>
+        <div class="bar-legend-item"><div class="bar-legend-dot" style="background: var(--vote-absent)"></div>Ausente {absentPct}%</div>
+        {obstructionPct > 0 && (
+          <div class="bar-legend-item"><div class="bar-legend-dot" style="background: var(--vote-obstruction)"></div>Obstrução {obstructionPct}%</div>
+        )}
+      </div>
+    </div>
+
+    <!-- Donut Chart -->
+    <div class="donut-section card">
+      <div class="donut-section__chart">
+        <DonutChart
+          yes={stats.yesVotes}
+          no={stats.noVotes}
+          absent={stats.absentVotes}
+          obstruction={stats.obstructionVotes}
+          client:visible
+        />
+      </div>
+      <div class="donut-section__legend">
+        <div class="donut-legend-item"><strong style="color: var(--vote-yes-light)">{stats.yesVotes}</strong> <span>Sim</span></div>
+        <div class="donut-legend-item"><strong style="color: var(--vote-no-light)">{stats.noVotes}</strong> <span>Não</span></div>
+        <div class="donut-legend-item"><strong style="color: var(--vote-absent-light)">{stats.absentVotes}</strong> <span>Ausente</span></div>
+        {stats.obstructionVotes > 0 && (
+          <div class="donut-legend-item"><strong style="color: var(--vote-obstruction-light)">{stats.obstructionVotes}</strong> <span>Obstrução</span></div>
+        )}
+      </div>
+    </div>
+
+    <!-- Party Alignment -->
+    <div class="party-align card">
+      <div class="party-align__title mono">Alinhamento com o {profile.party}</div>
+      <div class="party-align__pct">{stats.partyAlignmentPercent}%</div>
+      <div class="party-align__note">
+        Votou junto com a maioria do partido em {stats.partyAlignmentPercent}% das votações.
+      </div>
+      <div class="align-bar-bg">
+        <div
+          class="align-bar-fill"
+          style={`width: ${stats.partyAlignmentPercent}%; background: linear-gradient(to right, var(--vote-yes), var(--vote-yes-light))`}
+        ></div>
+      </div>
+    </div>
+
+    <!-- Highlighted Votes -->
+    {highlightedVotes.length > 0 && (
+      <>
+        <h2 class="sub-heading">🔥 Votações polêmicas</h2>
+        {highlightedVotes.map((pv) => (
+          <VoteItem pv={pv} />
+        ))}
+      </>
+    )}
+
+    <!-- All Recent Votes -->
+    <h2 class="sub-heading">📋 Votações recentes</h2>
+    {votes.map((pv) => (
+      <VoteItem pv={pv} />
+    ))}
+
+    <!-- Amendments -->
+    {amendments.length > 0 && (
+      <>
+        <h2 class="sub-heading">💰 Emendas parlamentares 2024</h2>
+        <div class="emendas-card card">
+          <div class="emendas-header">
+            <div class="emendas-header__label mono">Total empenhado</div>
+            <div class="emendas-header__value">{formatCurrency(totalAmendmentsAmount)}</div>
+          </div>
+          <div class="divider"></div>
+          {amendments.map((a) => (
+            <div class="emenda-bar-row">
+              <div class="emenda-label">
+                <span>{a.city} ({a.state})</span>
+                <span class="emenda-val mono">{formatCurrency(a.amount)}</span>
+              </div>
+              <div class="emenda-track">
+                <div class="emenda-fill" style={`width: ${(a.amount / maxAmendment) * 100}%`}></div>
+              </div>
+            </div>
+          ))}
+          <div class="source-note mono" style="margin-top: 0.75rem">
+            Fonte: Portal da Transparência · Exercício 2024
+          </div>
+        </div>
+
+        <div class="emendas-stats grid-2" style="margin: 0.75rem 0 2rem">
+          <div class="card score-card">
+            <div class="score-value score-value--accent">{amendments.length}</div>
+            <div class="score-label">projetos</div>
+          </div>
+          <div class="card score-card">
+            <div class="score-value">{new Set(amendments.map((a) => a.city)).size}</div>
+            <div class="score-label">municípios</div>
+          </div>
+        </div>
+      </>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .profile-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    padding: 1.5rem 0;
+  }
+
+  .profile-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    cursor: pointer;
+    margin-bottom: 1.25rem;
+    transition: color var(--transition-fast);
+    text-decoration: none;
+  }
+
+  .profile-back:hover {
+    color: var(--text-primary);
+  }
+
+  .profile-top {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .profile-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border-secondary);
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .profile-name {
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    margin-bottom: 0.35rem;
+  }
+
+  .profile-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .profile-body {
+    padding-top: 0.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .presence-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .presence-text h3 {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .presence-text p {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .vote-bar-wrap {
+    margin-bottom: 1rem;
+  }
+
+  .bar-title {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.6rem;
+  }
+
+  .donut-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .donut-section__legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .donut-legend-item {
+    font-size: 0.82rem;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .donut-legend-item span {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+  }
+
+  .party-align {
+    margin-bottom: 1rem;
+  }
+
+  .party-align__title {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+  }
+
+  .party-align__pct {
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--vote-yes-light);
+    margin-bottom: 0.1rem;
+  }
+
+  .party-align__note {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+  }
+
+  .align-bar-bg {
+    height: 12px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .align-bar-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width var(--transition-slow);
+  }
+
+  .sub-heading {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 1.5rem 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sub-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-primary);
+  }
+
+  .emendas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.75rem;
+  }
+
+  .emendas-header__label {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+
+  .emendas-header__value {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--accent);
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border-primary);
+    margin: 0.6rem 0;
+  }
+
+  .emenda-bar-row {
+    margin-bottom: 0.7rem;
+  }
+
+  .emenda-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .emenda-val {
+    color: var(--text-secondary);
+  }
+
+  .emenda-track {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .emenda-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: var(--radius-full);
+    transition: width var(--transition-slow);
+  }
+
+  .source-note {
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+</style>

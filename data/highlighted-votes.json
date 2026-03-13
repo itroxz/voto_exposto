@@ -1,0 +1,58 @@
+[
+  {
+    "external_id": "2323456",
+    "chamber": "camara",
+    "category": "orcamento",
+    "label_pt": "Regulamentação de apostas esportivas (Bets)",
+    "why_matters": "Define regras para o mercado de apostas online, incluindo tributação e proteção ao consumidor"
+  },
+  {
+    "external_id": "2284015",
+    "chamber": "camara",
+    "category": "tributacao",
+    "label_pt": "Reforma Tributária (PEC 45/2019)",
+    "why_matters": "Maior reforma tributária em 30 anos, unifica impostos sobre consumo"
+  },
+  {
+    "external_id": "2277385",
+    "chamber": "camara",
+    "category": "direitos",
+    "label_pt": "Marco Temporal para terras indígenas",
+    "why_matters": "Define que indígenas só têm direito a terras ocupadas em 1988"
+  },
+  {
+    "external_id": "2360001",
+    "chamber": "camara",
+    "category": "direitos",
+    "label_pt": "PEC da Anistia — 8 de Janeiro",
+    "why_matters": "Proposta de anistia aos condenados pelos atos de 8 de janeiro de 2023"
+  },
+  {
+    "external_id": "2350123",
+    "chamber": "camara",
+    "category": "transparencia",
+    "label_pt": "Transparência CNPJ — Dados abertos de empresas",
+    "why_matters": "Obriga publicação online dos dados cadastrais de todas as empresas"
+  },
+  {
+    "external_id": "2290100",
+    "chamber": "camara",
+    "category": "corrupcao",
+    "label_pt": "PL das Fake News",
+    "why_matters": "Regulamentação de plataformas digitais e combate à desinformação"
+  },
+  {
+    "external_id": "2270050",
+    "chamber": "camara",
+    "category": "orcamento",
+    "label_pt": "Arcabouço Fiscal",
+    "why_matters": "Nova regra fiscal que substitui o teto de gastos"
+  },
+  {
+    "external_id": "2320077",
+    "chamber": "camara",
+    "category": "privilegios",
+    "label_pt": "Aumento do fundo eleitoral",
+    "why_matters": "Aumento do fundo de campanha para R$ 4,9 bilhões"
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "name": "voto-exposto",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "fetch:camara": "tsx scripts/fetch-camara.ts",
+    "fetch:senado": "tsx scripts/fetch-senado.ts",
+    "process": "tsx scripts/process-data.ts",
+    "seed": "tsx scripts/seed-d1.ts",
+    "update": "npm run fetch:camara && npm run fetch:senado && npm run process && npm run seed"
+  },
+  "dependencies": {
+    "astro": "^5.5.0",
+    "@astrojs/react": "^4.2.0",
+    "@astrojs/cloudflare": "^12.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "d3": "^7.9.0",
+    "fuse.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/d3": "^7.4.3",
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "wrangler": "^3.99.0"
+  }
+}

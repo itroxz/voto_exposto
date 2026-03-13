@@ -1,0 +1,75 @@
+---
+// VoteItem — Single vote in a politician's profile with their vote badge
+import { getVoteBadgeClass, getVoteLabel, formatDate } from '@lib/types';
+import type { PoliticianVote } from '@lib/types';
+
+export interface Props {
+  pv: PoliticianVote;
+}
+
+const { pv } = Astro.props;
+const { vote, position } = pv;
+const badgeClass = getVoteBadgeClass(position);
+const label = getVoteLabel(position);
+const chamberLabel = vote.chamber === 'camara' ? 'Câmara' : 'Senado';
+const voteHref = `/votacao/${vote.chamber}/${vote.id}`;
+---
+
+<a href={voteHref} class="vote-item card card--interactive">
+  {vote.isHighlighted && <span class="badge badge--polemic">🔥 Polêmica</span>}
+  <div class="vote-item__top">
+    <div class="vote-item__title">{vote.description}</div>
+    <span class={`vote-badge ${badgeClass}`}>{label}</span>
+  </div>
+  <div class="vote-item__bottom">
+    <div class="vote-item__date mono">{formatDate(vote.date)} · {chamberLabel}</div>
+    <div class="vote-item__score mono">
+      <span class="vote-item__yes">✓ {vote.yesCount}</span>
+      <span class="vote-item__dot">·</span>
+      <span class="vote-item__no">✗ {vote.noCount}</span>
+    </div>
+  </div>
+</a>
+
+<style>
+  .vote-item {
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .vote-item__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .vote-item__title {
+    font-size: 0.87rem;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .vote-item__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .vote-item__date {
+    font-size: 0.68rem;
+    color: var(--text-tertiary);
+  }
+
+  .vote-item__score {
+    display: flex;
+    gap: 6px;
+    font-size: 0.68rem;
+  }
+
+  .vote-item__yes { color: var(--vote-yes-light); }
+  .vote-item__no { color: var(--vote-no-light); }
+  .vote-item__dot { color: var(--text-tertiary); }
+</style>

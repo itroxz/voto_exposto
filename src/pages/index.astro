@@ -1,0 +1,172 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import RankCard from '@components/RankCard.astro';
+import VoteRow from '@components/VoteRow.astro';
+import SearchBar from '@islands/SearchBar';
+import { mockVotes } from '@lib/mock-data';
+import { formatDate } from '@lib/types';
+
+const recentVotes = mockVotes
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .slice(0, 5);
+---
+
+<BaseLayout>
+  <!-- Hero -->
+  <section class="hero">
+    <span class="hero__eyebrow mono">🇧🇷 Transparência parlamentar</span>
+    <h1 class="hero__title">
+      Descubra como seu<br />deputado <em>realmente</em> vota
+    </h1>
+    <p class="hero__subtitle">
+      Dados oficiais da Câmara e Senado. Sem opinião, sem viés — só os fatos.
+      Busque qualquer parlamentar e veja o histórico completo.
+    </p>
+
+    <SearchBar client:load />
+  </section>
+
+  <!-- Data disclaimer -->
+  <div class="container">
+    <div class="data-banner">
+      <span>⚠️</span>
+      <span>
+        Protótipo com dados simulados. Na versão final, dados virão diretamente da
+        API oficial da Câmara dos Deputados, Senado Federal e Portal da Transparência.
+      </span>
+    </div>
+  </div>
+
+  <!-- Rankings rápidos -->
+  <section class="container section">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Destaques</div>
+        <div class="section-title">Rankings rápidos</div>
+      </div>
+      <a href="/rankings" class="section-link">Ver todos →</a>
+    </div>
+    <div class="rank-grid grid-2 grid-3-sm">
+      <RankCard
+        icon="💤"
+        title="Mais faltosos"
+        description="Quem menos apareceu pras votações este ano"
+        href="/rankings?tab=faltosos"
+      />
+      <RankCard
+        icon="🙈"
+        title="Contra transparência"
+        description="Votaram contra fiscalização e acesso a informação"
+        href="/rankings?tab=transparencia"
+      />
+      <RankCard
+        icon="🔄"
+        title="Desobedientes"
+        description="Mais vezes contra o próprio partido"
+        href="/rankings?tab=rebeldes"
+      />
+      <RankCard
+        icon="💰"
+        title="Emendas concentradas"
+        description="Mandaram mais pra poucos municípios"
+        href="/rankings?tab=emendas"
+      />
+      <RankCard
+        icon="✅"
+        title="Mais presentes"
+        description="Presença acima de 95% em todos os plenários"
+        href="/rankings?tab=presentes"
+      />
+      <RankCard
+        icon="📊"
+        title="Por partido"
+        description="Médias de presença e votação por legenda"
+        href="/rankings?tab=partidos"
+      />
+    </div>
+  </section>
+
+  <!-- Votações recentes -->
+  <section class="container section" style="padding-top: 0">
+    <div class="section-header">
+      <div>
+        <div class="section-eyebrow">Câmara & Senado</div>
+        <div class="section-title">Votações polêmicas recentes</div>
+      </div>
+    </div>
+    {
+      recentVotes.map((v) => (
+        <VoteRow
+          title={v.description}
+          chamber={v.chamber === 'camara' ? 'Câmara' : 'Senado'}
+          date={formatDate(v.date)}
+          yesCount={v.yesCount}
+          noCount={v.noCount}
+          isHighlighted={v.isHighlighted}
+          href={`/votacao/${v.chamber}/${v.id}`}
+        />
+      ))
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 3.5rem 1.25rem 2.5rem;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .hero__eyebrow {
+    display: inline-block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    background: var(--accent-bg);
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero__title {
+    font-weight: 800;
+    font-size: clamp(2rem, 7vw, 3.2rem);
+    line-height: 1.05;
+    letter-spacing: -1px;
+    margin-bottom: 1rem;
+  }
+
+  .hero__title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero__subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    max-width: 480px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+
+  .data-banner {
+    background: var(--highlight-bg);
+    border: 1px solid var(--highlight-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    color: var(--vote-obstruction);
+    font-family: var(--font-mono);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .section {
+    padding: 2rem 0;
+  }
+</style>

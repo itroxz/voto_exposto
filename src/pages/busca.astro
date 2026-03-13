@@ -1,0 +1,92 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PoliticianCard from '@components/PoliticianCard.astro';
+import { mockSearch } from '@lib/mock-data';
+
+const query = Astro.url.searchParams.get('q') || '';
+const results = mockSearch(query);
+---
+
+<BaseLayout title={`Busca: ${query} — Voto Exposto`}>
+  <div class="results-wrap container container-sm">
+    <div class="results-header">
+      <a href="/" class="results-back mono">← voltar</a>
+      <div>
+        <div class="results-count mono section-eyebrow">
+          {results.length} resultado{results.length !== 1 ? 's' : ''} encontrado{results.length !== 1 ? 's' : ''}
+        </div>
+        <div class="results-title section-title">
+          {query ? `Busca: "${query}"` : 'Todos os parlamentares'}
+        </div>
+      </div>
+    </div>
+
+    {results.length === 0 && (
+      <div class="results-empty card">
+        <p class="results-empty__text">
+          Nenhum parlamentar encontrado para "<strong>{query}</strong>".
+        </p>
+        <p class="results-empty__hint mono">
+          Tente buscar por nome, partido (ex: PT) ou estado (ex: SP).
+        </p>
+      </div>
+    )}
+
+    {results.map((r) => (
+      <PoliticianCard result={r} />
+    ))}
+
+    {results.length > 0 && (
+      <div class="results-source mono">
+        Exibindo {results.length} parlamentar{results.length !== 1 ? 'es' : ''} · Fonte: Câmara e Senado
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .results-wrap {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .results-header {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .results-back {
+    color: var(--text-secondary);
+    font-size: 1.3rem;
+    line-height: 1;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .results-back:hover {
+    color: var(--text-primary);
+  }
+
+  .results-empty {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .results-empty__text {
+    margin-bottom: 0.5rem;
+  }
+
+  .results-empty__hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .results-source {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 1rem;
+  }
+</style>

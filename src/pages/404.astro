@@ -1,0 +1,35 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Página não encontrada — Voto Exposto">
+  <div class="not-found container">
+    <h1>404</h1>
+    <p>Página não encontrada.</p>
+    <a href="/" class="not-found__link">← Voltar ao início</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    text-align: center;
+    padding: 4rem 1.25rem;
+  }
+
+  .not-found h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+  }
+
+  .not-found p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  .not-found__link {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+</style>

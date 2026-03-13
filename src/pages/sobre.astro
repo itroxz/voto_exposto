@@ -1,0 +1,111 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Sobre — Voto Exposto">
+  <div class="about container container-sm">
+    <h1 class="about__title">Sobre o Voto Exposto</h1>
+
+    <section class="about__section">
+      <h2>🎯 Missão</h2>
+      <p>
+        Ajudar o cidadão brasileiro a saber <strong>como seus representantes realmente votam</strong>.
+        O Voto Exposto reúne dados oficiais públicos da Câmara dos Deputados, Senado Federal e
+        Portal da Transparência em uma interface simples, rápida e sem complicação.
+      </p>
+    </section>
+
+    <section class="about__section">
+      <h2>📊 Como funciona</h2>
+      <ul>
+        <li><strong>Dados oficiais:</strong> Toda informação vem das APIs públicas da Câmara, Senado e do Portal da Transparência do governo federal.</li>
+        <li><strong>Atualização automática:</strong> Os dados são atualizados automaticamente 2 vezes por dia via pipeline automatizado.</li>
+        <li><strong>Sem opinião:</strong> O site não emite juízo de valor. Apresenta fatos — votos, presenças, emendas — para que você tire suas próprias conclusões.</li>
+        <li><strong>Código aberto:</strong> Todo o código é público no GitHub. Qualquer pessoa pode auditar, sugerir melhorias ou reportar erros.</li>
+      </ul>
+    </section>
+
+    <section class="about__section">
+      <h2>📐 Metodologia</h2>
+      <ul>
+        <li><strong>Presença:</strong> Calculada como o percentual de votações nominais em que o parlamentar registrou voto (sim, não, abstenção ou obstrução). Ausências incluem faltas justificadas e injustificadas.</li>
+        <li><strong>Alinhamento partidário:</strong> Percentual de vezes que o parlamentar votou na mesma direção da orientação do líder do partido.</li>
+        <li><strong>Votações polêmicas:</strong> Curadoria manual de votações que geraram grande debate público. A lista é mantida de forma transparente (arquivo JSON no repositório) e aceita contribuições da comunidade.</li>
+        <li><strong>Emendas:</strong> Dados do Portal da Transparência e Siga Brasil sobre emendas individuais empenhadas.</li>
+      </ul>
+    </section>
+
+    <section class="about__section">
+      <h2>🔗 Fontes de dados</h2>
+      <ul>
+        <li><a href="https://dadosabertos.camara.leg.br" target="_blank" rel="noopener">Dados Abertos da Câmara dos Deputados</a></li>
+        <li><a href="https://legis.senado.leg.br/dadosabertos" target="_blank" rel="noopener">Dados Abertos do Senado Federal</a></li>
+        <li><a href="https://portaltransparencia.gov.br" target="_blank" rel="noopener">Portal da Transparência</a></li>
+        <li><a href="https://www12.senado.leg.br/orcamento/sigabrasil" target="_blank" rel="noopener">Siga Brasil (Orçamento do Senado)</a></li>
+      </ul>
+    </section>
+
+    <section class="about__section">
+      <h2>🤝 Contribua</h2>
+      <p>
+        O Voto Exposto é um projeto open source. Quer ajudar?
+      </p>
+      <ul>
+        <li>Reporte bugs ou sugira melhorias nas <a href="https://github.com/voto-exposto/voto-exposto/issues" target="_blank" rel="noopener">Issues do GitHub</a></li>
+        <li>Contribua com código via Pull Request</li>
+        <li>Ajude a curar a lista de votações polêmicas</li>
+        <li>Divulgue para amigos e familiares</li>
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    padding: 2rem 0 3rem;
+  }
+
+  .about__title {
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.5px;
+  }
+
+  .about__section {
+    margin-bottom: 2rem;
+  }
+
+  .about__section h2 {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .about__section p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+  }
+
+  .about__section ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .about__section li {
+    position: relative;
+    padding-left: 1.25rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.4rem;
+  }
+
+  .about__section li::before {
+    content: '·';
+    position: absolute;
+    left: 0.25rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+</style>

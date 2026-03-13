@@ -1,0 +1,65 @@
+---
+// VoteRow — A single vote in a list with score and optional polemic tag
+export interface Props {
+  title: string;
+  chamber: string;
+  date: string;
+  yesCount: number;
+  noCount: number;
+  isHighlighted?: boolean;
+  href?: string;
+}
+
+const { title, chamber, date, yesCount, noCount, isHighlighted = false, href = '#' } = Astro.props;
+---
+
+<a class="vote-row card card--interactive" href={href}>
+  <div class="vote-row__content">
+    {isHighlighted && <span class="badge badge--polemic">🔥 Polêmica</span>}
+    <div class="vote-row__title">{title}</div>
+    <div class="vote-row__meta mono">{chamber} · {date}</div>
+  </div>
+  <div class="vote-row__score">
+    <span class="vote-row__num vote-row__num--yes mono">✓ {yesCount}</span>
+    <span class="vote-row__dot">·</span>
+    <span class="vote-row__num vote-row__num--no mono">✗ {noCount}</span>
+  </div>
+</a>
+
+<style>
+  .vote-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+
+  .vote-row__title {
+    font-size: 0.87rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+  }
+
+  .vote-row__meta {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .vote-row__score {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .vote-row__num {
+    font-size: 0.75rem;
+  }
+
+  .vote-row__num--yes { color: var(--vote-yes-light); }
+  .vote-row__num--no { color: var(--vote-no-light); }
+  .vote-row__dot { color: var(--text-tertiary); }
+</style>
