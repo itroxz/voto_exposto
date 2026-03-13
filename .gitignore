@@ -15,6 +15,9 @@ dist/
 .vscode/
 .idea/
 
+# Local agent skills
+.agents/skills/brainstorming/
+
 # OS
 .DS_Store
 Thumbs.db
